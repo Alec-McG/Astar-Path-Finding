@@ -100,13 +100,13 @@ def reconstruct_path(prev_node,current,draw):
 
 def algorithm(draw, grid, start, end):
     count = 0
-    open_set = PriorityQueue()
+    open_set = PriorityQueue() #heat sort algo get min element from queue
     open_set.put((0, count, start)) #add start node into open set
-    prev_node = {}
-    g_score = {node: float("inf") for row in grid for node in row}
-    g_score[start] = 0
-    f_score = {node: float("inf") for row in grid for node in row}
-    f_score[start] = h(start.get_pos(), end.get_pos())
+    prev_node = {} # dictionary for prev node - keeps track of where current node came from
+    g_score = {node: float("inf") for row in grid for node in row} # current shortest distance from start node to current node
+    g_score[start] = 0 
+    f_score = {node: float("inf") for row in grid for node in row} # predicted distance from current node to end node (manhattan length)
+    f_score[start] = h(start.get_pos(), end.get_pos()) # initial heuristic from start to end node
 
     open_set_hash = {start} #check what is in PriorityQueue
 
@@ -115,22 +115,22 @@ def algorithm(draw, grid, start, end):
             if event.type == pygame.QUIT:
                 pygame.quit() # this algo takes over quit below
 
-        current = open_set.get()[2]
-        open_set_hash.remove(current)
+        current = open_set.get()[2] # get node object from PriorityQueue
+        open_set_hash.remove(current) # remove current node from open set
 
-        if current == end:
+        if current == end: # if at end, algo done
             reconstruct_path(prev_node, end, draw)
             end.make_end()
             return True
 
-        for neighbor in current.neighbors:
+        for neighbor in current.neighbors: # otherwise look at current node neighbors
             temp_g_score = g_score[current] + 1
 
-            if temp_g_score < g_score[neighbor]:
+            if temp_g_score < g_score[neighbor]: # if temp g_score is better than current g_score, update
                 prev_node[neighbor] = current
                 g_score[neighbor] = temp_g_score
                 f_score[neighbor] = temp_g_score + h(neighbor.get_pos(), end.get_pos())
-                if neighbor not in open_set_hash:
+                if neighbor not in open_set_hash: # Add node to open set
                     count += 1
                     open_set.put((f_score[neighbor], count, neighbor))
                     open_set_hash.add(neighbor)
