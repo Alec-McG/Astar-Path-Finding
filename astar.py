@@ -19,6 +19,7 @@ ORANGE = (255, 165 ,0)
 GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
 
+ROUGHWEIGHT = 10
 
 class Node:
     def __init__(self, row, col, width, total_rows):
@@ -73,7 +74,7 @@ class Node:
 
     def make_rough(self):
         self.colour = BLUE
-        self.weight = 10 
+        self.weight = ROUGHWEIGHT 
 
     def make_start(self):
         self.colour = ORANGE
