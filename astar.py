@@ -10,7 +10,7 @@ pygame.display.set_caption("A* Path Finding Algo")
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
-BLUE = (0, 255, 0)
+BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -30,6 +30,9 @@ class Node:
         self.neighbors = []
         self.width = width
         self.total_rows = total_rows
+        self.weight = 1
+        
+
 
     def get_pos(self):
         return self.row, self.col
@@ -43,6 +46,9 @@ class Node:
     def is_obstacle(self):
         return self.colour == BLACK
 
+    def is_rough(self):
+        return self.colour == BLUE
+
     def is_start(self):
         return self.colour == ORANGE
 
@@ -51,15 +57,23 @@ class Node:
 
     def reset(self):
         self.colour = WHITE
+        self.weight = 1
 
     def make_closed(self): # Set node colours
         self.colour = RED
+
+    def make_closed_rough(self):
+        self.colour = ORANGE
     
     def make_open(self):
         self.colour = GREEN
 
     def make_obstacle(self):
         self.colour = BLACK
+
+    def make_rough(self):
+        self.colour = BLUE
+        self.weight = 10 
 
     def make_start(self):
         self.colour = ORANGE
@@ -104,7 +118,7 @@ def algorithm(draw, grid, start, end):
     open_set.put((0, count, start)) #add start node into open set
     prev_node = {} # dictionary for prev node - keeps track of where current node came from
     g_score = {node: float("inf") for row in grid for node in row} # current shortest distance from start node to current node
-    g_score[start] = 0 
+    g_score[start] = 0  
     f_score = {node: float("inf") for row in grid for node in row} # predicted distance from current node to end node (manhattan length)
     f_score[start] = h(start.get_pos(), end.get_pos()) # initial heuristic from start to end node
 
@@ -124,7 +138,7 @@ def algorithm(draw, grid, start, end):
             return True
 
         for neighbor in current.neighbors: # otherwise look at current node neighbors
-            temp_g_score = g_score[current] + 1
+            temp_g_score = g_score[current] + neighbor.weight # add weight of node
 
             if temp_g_score < g_score[neighbor]: # if temp g_score is better than current g_score, update
                 prev_node[neighbor] = current
@@ -137,8 +151,10 @@ def algorithm(draw, grid, start, end):
                     neighbor.make_open()
         draw()
 
-        if current != start:
+        if current != start and current.weight == 1:
             current.make_closed()
+        elif current != start and current.weight > 1:
+            current.make_closed_rough()
     
     return False
 
@@ -228,6 +244,14 @@ def main(win,width):
                     start = None
                 elif node == end:
                     end = None
+
+            elif pygame.mouse.get_pressed()[1]: #mid press
+                pos = pygame.mouse.get_pos()
+                row,col = get_clicked_pos(pos,ROWS,width)
+                node = grid[row][col]
+                if node != end and node != start:
+                    node.make_rough()
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and start and end:
                     for row in grid:
